@@ -29,13 +29,13 @@ typedef struct components{
 };
 
 typedef struct map_entry_t {
-long addr_start
-long addr_end
-char[4] protection
-long offset
-char[5] stuff
-long inode
-char *program
+long addr_start;
+long addr_end;
+char[4] protection;
+long offset;
+char[5] stuff;
+long inode;
+char *program;
 map_entry_t *next;
 };
 
