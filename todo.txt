@@ -14,7 +14,7 @@ THINGS THIS PROGRAM MUST DO:
       of files named "pagemap" and "maps". If these files
       do not exist, then report an error and exit.
 
-   4. Parse the map's file for further processing on each of
+   4. Parse the "maps" file for further processing on each of
       the entries (bleh). The "maps" file contains entries
       with a format specified in the .docx
 

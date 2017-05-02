@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 /*****************************************
  *         Linux Memory Page Map         *
  * Evan Schoenberger & Nathaniel Manning *
@@ -17,22 +18,40 @@ FILE *pagemap;
 FILE *maps;
 
 /**
+ * [5] Converts an address to its corresponding
+ * page number.
+ */
+long findPageNo(long addr) 
+{
+	int pageSize = getpagesize();
+	return addr/pageSize;
+}
+
+/**
  * [3] Finds pagemap and map references.
  * closes program with error if unable to locate.
  */
 void findPidFiles()
 {
+	// Open pagemap
 	pagemap = fopen("pagemap", "r");
-   maps = fopen("maps", "r");
+	// Check for errors with pagemap
 	if (pagemap == NULL)
 	{
-		// TODO: add more specific error messages that have to do with
-		// permissions.
-		fprintf(stderr, "Error - pagemap not found\n");
+		if (errno = ENOENT)
+			fprintf(stderr, "Error - pagemap not found\n");
+		else
+			fprintf(stderr, "Error - unable to open pagemap\n");
 	}
+	// open maps
+	maps = fopen("maps", "r");
+	// Check for errors with maps
 	if (maps == NULL)
 	{
-		fprintf(stderr, "Error - maps not found\n");
+		if (errno = ENOENT)
+			fprintf(stderr, "Error - maps not found\n");
+		else
+			fprintf(stderr, "Error - unable to open maps\n");
 	}
 }
 
@@ -88,4 +107,19 @@ int main(int argc, char **argv)
 	findProcDir();
 	// [3]
    findPidFiles();
+   
+   // For each entry we found in maps:
+   map_entry_t currentEntry = head;
+   while (currentEntry != NULL)
+   {
+   	// [5]
+   	long startPage = findPageNo(currentEntry->addr_start);
+   	long endPage = findPageNo(currentEntry->addr_end);
+   	// Go through every page number in range of startPage to endPage,
+   	// find its corresponding entry in the pagemap file.
+   	for (int i = startPage, i <= endPage; i++)
+   	{
+   	}
+   	currentEntry = currentEntry->next;
+   }   
 }
