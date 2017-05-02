@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+/*****************************************
+ *         Linux Memory Page Map         *
+ * Evan Schoenberger & Nathaniel Manning *
+ *****************************************/
+// TODO As we finish each task, prepend a checkmark. (✓)
+// (you do that by doing ctrl+shift+u,typing 2713, and hitting enter.)
+/* 
+ * THINGS THIS PROGRAM MUST DO:
+ *
+ * ✓  1. Accept a single command line argument which
+ *       is the PID# of a running program in the system.
+ *
+ *    2. If the process is still running, then there will be
+ *       entry in /proc with the given PID as a subdirectory.
+ *       If that subdirectory does not exist, then return an
+ *       error message indicating the PID cannot be found.
+ *
+ *    3. In the /proc directory for a pid, there will be a pair
+ *       of files named "pagemap" and "maps". If these files
+ *       do not exist, then report an error and exit.
+ *
+ *    4. Parse the map's file for further processing on each of
+ *       the entries (bleh). The "maps" file contains entries
+ *       with a format specified in the .docx
+ *
+ *    5. For each entry in maps, there is a starting and ending
+ *       address. You must conver this into a starting and ending
+ *       page number.
+ *
+ *    6. For each page number in the range you need to find the
+ *       corresponding entry in the "pagemap" file. The contents
+ *       of the pagemap file are described in the Kernel's
+ *       documentation file.
+ *
+ *    7. To do this, you will need to open the file as a random
+ *       access file, and seek to a location in that file that
+ *       corresponds to the page number. Each entry in the file is
+ *       64bit/8byte. If x is the page number, then the address in the
+ *       disk file for that page's information is: f(x) = 8x
+ * 
+ *    8. After locating the proper pagemap entry, you will need to read
+ *       the pagemap entry using the read syscall to read the 8-bytes
+ *       into an appropriate structure.
+ *
+ *    9. After reading the pagemap entry, you will need to parse the
+ *       entry's bit field to determine the information stored there.
+ *       This entry is a binary value, and you will need to split out
+ *       the bit fields from this binary value. You can choose to do
+ *       this with binary arithmetic (shifts & masks) or you can learn
+ *       how to use C's bit-field operator. Show each range of memory
+ *       from the map file, and then for each segment, show each page
+ *       and its status.
+ *
+ *    10. In the end, must show each page of memory, what its physical
+ *       page frame number is (if present), whether it is swapped or
+ *       not, if it is swapped, what its swap address is, and whether
+ *       the page is swapped, present, or neither.
+ *
+ *    11. At the end of the program, must show total number of pages,
+ *       number of pages present, number pages swapped, and number
+ *       pages not present. Use the page size to also show the total
+ *       MB for each section.
+ */ 
+
+// PID of process we're mapping.
+int pid = -1;
+
+
+/**
+ * Gets initial PID input and makes sure it's the proper input type.
+ */
+void acceptInitialInput(char *input)
+{
+   // Set pid
+	pid = atoi(input);
+	
+	// If input was not a valid integer, return an error and exit.
+	if (pid == 0) // FIXME potential error if actually looking for process 0.
+	{
+		fprintf(stderr, "Error - Invalid PID: %s\n", input);
+		exit(0);
+	}
+}
+
+/**
+ * main
+ */
+int main(int argc, char **argv)
+{
+	/* 1 */ acceptInitialInput(argv[1]);
+}
