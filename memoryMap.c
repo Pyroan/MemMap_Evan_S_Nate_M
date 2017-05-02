@@ -16,6 +16,34 @@ char procDir[256];
 FILE *pagemap;
 FILE *maps;
 
+typedef struct components{
+	uint64 page_frame_number[55];
+	uint64 swap_type_if_swapped[5];
+	uint64 swap_offset_if_swapped[49];
+	uint64 pte[1];
+	uint64 page_exclusively_mapped[1];
+	uint64 zero[3];
+	uint64 file_page_or_shared_anon[1];
+	uint64 swapped[1];
+	uint64 present[1];
+};
+
+typedef struct map_entry_t {
+long addr_start
+long addr_end
+char[4] protection
+long offset
+char[5] stuff
+long inode
+char *program
+map_entry_t *next;
+};
+
+void parseMaps(FILE* maps)
+{
+	
+}
+
 /**
  * [3] Finds pagemap and map references.
  * closes program with error if unable to locate.
