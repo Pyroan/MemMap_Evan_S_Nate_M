@@ -2,32 +2,53 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <dirent.h>
+#include <unistd.h>
 /*****************************************
  *         Linux Memory Page Map         *
  * Evan Schoenberger & Nathaniel Manning *
  *****************************************/
 
 // PID of process we're mapping.
-int pid = -1;
+int pid = 0;
 // Reference to /proc/<<pid>>
-DIR  *procDir;
+char procDir[256];
 // Files to be found in /proc/<<pid>>
 FILE *pagemap;
 FILE *maps;
 
 /**
- * [2] Attempts to find corresponding directory in /proc.
- * closes program if unable to locate.
+ * [3] Finds pagemap and map references.
+ * closes program with error if unable to locate.
  */
-void findPid()
+void findPidFiles()
 {
-	char *dirName;
-	sprintf(dirName, "/proc/%d", pid); 
-	procDir = opendir (dirName);
-	if (procDir == NULL)
+	pagemap = fopen("pagemap", "r");
+   maps = fopen("maps", "r");
+	if (pagemap == NULL)
 	{
-		fprintf(stderr, "Error - /proc/%d not found\n", pid);
+		// TODO: add more specific error messages that have to do with
+		// permissions.
+		fprintf(stderr, "Error - pagemap not found\n");
+	}
+	if (maps == NULL)
+	{
+		fprintf(stderr, "Error - maps not found\n");
+	}
+}
+
+/**
+ * [2] Attempts to find corresponding directory in /proc.
+ * closes program with error if unable to locate.
+ */
+void findProcDir()
+{
+	// Set name of dir we're looking for
+	sprintf(procDir, "/proc/%d", pid);
+	// Attempt to open the dir.
+	// Check for errors
+	if (chdir(procDir) == -1)
+	{
+		fprintf(stderr, "Error - %s not found\n", procDir);
 		exit(0);
 	}
 }
@@ -41,7 +62,7 @@ void acceptInitialInput(char *input)
 	pid = atoi(input);
 	
 	// If input was not a valid integer, return an error and exit.
-	if (pid == 0) // FIXME potential error if actually looking for process 0.
+	if (pid == 0)
 	{
 		fprintf(stderr, "Error - Invalid PID: %s\n", input);
 		exit(0);
@@ -54,7 +75,17 @@ void acceptInitialInput(char *input)
 int main(int argc, char **argv)
 {
 	// [1]
-	acceptInitialInput(argv[1]);
+	if (argc >=2)
+	{
+		acceptInitialInput(argv[1]);
+	}
+	else
+	{
+		fprintf(stderr, "Error - No input provided\n");
+		exit(0);
+	}
 	// [2]
-	findPid();
+	findProcDir();
+	// [3]
+   findPidFiles();
 }

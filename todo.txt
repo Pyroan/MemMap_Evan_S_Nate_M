@@ -10,7 +10,7 @@ THINGS THIS PROGRAM MUST DO:
       If that subdirectory does not exist, then return an
       error message indicating the PID cannot be found.
 
-   3. In the /proc directory for a pid, there will be a pair
+✓   3. In the /proc directory for a pid, there will be a pair
       of files named "pagemap" and "maps". If these files
       do not exist, then report an error and exit.
 
