@@ -15,7 +15,7 @@ char procDir[256];
 // Files to be found in /proc/<<pid>>
 FILE *pagemap;
 FILE *maps;
-
+/*
 typedef struct components{
 	uint64 page_frame_number[55];
 	uint64 swap_type_if_swapped[5];
@@ -26,22 +26,67 @@ typedef struct components{
 	uint64 file_page_or_shared_anon[1];
 	uint64 swapped[1];
 	uint64 present[1];
-};
+}; */
 
-typedef struct map_entry_t {
+typedef struct map_entry {
 long addr_start;
 long addr_end;
-char[4] protection;
+char *protection;
 long offset;
-char[5] stuff;
+char *stuff;
 long inode;
 char *program;
-map_entry_t *next;
-};
+struct map_entry *next;
+} map_entry_t;
 
-void parseMaps(FILE* maps)
+map_entry_t *head;
+/*
+ * [4] tokenizes the map, 
+ */
+void parseMaps()
 {
-	
+   char str[128];
+	fgets(str, 128, maps);
+	while(fgets(str, 128, maps) != NULL)
+   {
+		// Create a new entry
+		map_entry_t *entry = malloc(sizeof(map_entry_t));
+		char *tok = strtok(str, " -");
+		// Add start and end addresses		
+		entry->addr_start = strtol(tok, NULL, 16);
+      tok = strtok(NULL, " ");
+		entry->addr_end = strtol(tok, NULL, 16);
+//		printf("%lx, %lx\n", entry->addr_start, entry->addr_end);
+		// Add permissions
+		tok = strtok(NULL, " ");
+		entry->protection = malloc(sizeof(tok));
+		strcpy(entry->protection, tok);
+		// Add offset
+		tok = strtok(NULL, " ");
+		entry->offset = strtol(tok, NULL, 16);
+		// Add "stuff" TODO Please update this var name
+		tok = strtok(NULL, " ");
+		entry->stuff = malloc(sizeof(tok));
+		strcpy(entry->stuff,tok);
+		// Add inode
+		tok = strtok(NULL, " ");
+		entry->inode = strtol(tok, NULL, 16);
+		// Add program
+		do
+		{
+			tok = strtok(NULL, " ");
+		} while (tok == NULL);
+		entry->program = malloc(sizeof(tok));
+		strcpy(entry->program, tok);
+		
+		// Add new entry to linked list
+		map_entry_t *current = head;
+		while (current->next != NULL)
+		{
+			current = current->next;
+		}
+		current->next = entry;
+   }
 }
 
 /**
@@ -102,6 +147,7 @@ void acceptInitialInput(char *input)
  */
 int main(int argc, char **argv)
 {
+	head = malloc(sizeof(map_entry_t));
 	// [1]
 	if (argc >=2)
 	{
@@ -116,4 +162,6 @@ int main(int argc, char **argv)
 	findProcDir();
 	// [3]
    findPidFiles();
+	// [4]
+   parseMaps();
 }
