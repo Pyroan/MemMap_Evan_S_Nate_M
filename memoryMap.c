@@ -34,15 +34,16 @@ typedef struct components{
 	uint64 present[1];
 }; */
 
+// Data if map entry
 typedef struct map_entry {
-long addr_start;
-long addr_end;
-char *protection;
-long offset;
-char *stuff;
-long inode;
-char *program;
-struct map_entry *next;
+long addr_start; // Address of the beginning
+long addr_end; // Address of the end
+char *protection; // Protection settings
+long offset; // Offset length
+char *stuff; // We really don't know.
+long inode; // Inode
+char *program; // Location of program
+struct map_entry *next; // Reference to next map_entry in Linked Lst
 } map_entry_t;
 
 map_entry_t *head;
