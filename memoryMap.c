@@ -58,22 +58,18 @@ components_t* parsePageMap(uint64_t data)
 {
 	component->page_frame_number = data & 0x007fffffffffffff; 
 	component->present = data >> 63;
-	component->swapped =  data >> 62;
+	component->swapped =  (data >> 62)%2;
+	printf("shift guy: %" PRIx64 "\n", data >> 62);
 	component->swap_type_if_swapped = data & 0x00000000000001f;
 	component->swap_offset_if_swapped = data & 0x007fffffffffffe0;
 	printf("page number: %" PRIx64 "\n", component->page_frame_number);
-	if(component->swapped == 2 || component->swapped == 0)
+	printf("swapped: %" PRIx64 "\n", component->swapped);
+	printf("present: %" PRIx64 "\n", component->present);
+	if(component->swapped)
 	{
-		printf("swapped: 1\n");
 		printf("swap type: %" PRIx64 "\n", component->swap_type_if_swapped);
 		printf("swap offset: %" PRIx64 "\n", component->swap_offset_if_swapped);
 	}
-	else
-	{
-	printf("swapped: 0\n");
-		printf("present: %" PRIx64 "\n", component->present);
-	} 
-	return component;
 }
 /*
  * [4] tokenizes the map, 
@@ -254,10 +250,10 @@ int main(int argc, char **argv)
    		read(fd, &data, 8);
    		
    		// TODO uncomment this
-//   		components_t dataComponents = parsePageMap(data);
+			parsePageMap(data);
 			// TODO add logic for finding present and swapped
    		
-   		totalPages+= endPage-startPage;
+   		totalPages++;
    	}
    	currentEntry = currentEntry->next;
    }
