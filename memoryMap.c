@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdint.h>
 #include <inttypes.h>
 /*****************************************
  *         Linux Memory Page Map         *
@@ -23,36 +22,33 @@ char procDir[256];
 FILE *pagemap;
 FILE *maps;
 
+// Components of a pagemap entry
 typedef struct components{
 	uint64_t page_frame_number;
 	uint64_t swap_type_if_swapped;
 	uint64_t swap_offset_if_swapped;
-	uint64_t pte;
-	uint64_t page_exclusively_mapped;
-	uint64_t zero;
-	uint64_t file_page_or_shared_anon;
 	uint64_t swapped;
 	uint64_t present;
 } components_t;
 
 components_t *component;
 
-// Data if map entry
+// Data of map entry
 typedef struct map_entry {
-uint64_t addr_start;
-uint64_t addr_end;
-char *protection;
-uint64_t offset;
-char *stuff;
-uint64_t inode;
-char *program;
-struct map_entry *next;
+uint64_t addr_start;	// beginning address
+uint64_t addr_end;	// end address
+char *protection;		// protection values
+uint64_t offset;		// offset width
+char *major_minor;			// we don't really know
+uint64_t inode;		// node in the tree
+char *program;			// name of program
+struct map_entry *next;	// Next node in linked list.
 } map_entry_t;
 
 map_entry_t *head;
 
 /*
- * [9] 
+ * [9] Parses info from page map file
  */
 components_t* parsePageMap(uint64_t data)
 {
@@ -64,7 +60,7 @@ components_t* parsePageMap(uint64_t data)
 
 }
 /*
- * [4] tokenizes the map, 
+ * [4] Tokenizes the map, stores entry  
  */
 void parseMaps()
 {
@@ -79,7 +75,6 @@ void parseMaps()
 		entry->addr_start = strtol(tok, NULL, 16);
       tok = strtok(NULL, " ");
 		entry->addr_end = strtol(tok, NULL, 16);
-//		printf("%lx, %lx\n", entry->addr_start, entry->addr_end);
 		// Add permissions
 		tok = strtok(NULL, " ");
 		entry->protection = malloc(sizeof(tok));
@@ -87,10 +82,10 @@ void parseMaps()
 		// Add offset
 		tok = strtok(NULL, " ");
 		entry->offset = strtol(tok, NULL, 16);
-		// Add "stuff" TODO Please update this var name
+		// Add major and minor
 		tok = strtok(NULL, " ");
-		entry->stuff = malloc(sizeof(tok));
-		strcpy(entry->stuff,tok);
+		entry->major_minor = malloc(sizeof(tok));
+		strcpy(entry->major_minor,tok);
 		// Add inode
 		tok = strtok(NULL, " ");
 		entry->inode = strtol(tok, NULL, 16);
@@ -202,8 +197,7 @@ int main(int argc, char **argv)
 {
 	head = malloc(sizeof(map_entry_t));
 	component = malloc(sizeof(components_t));
-	// [1]
-	// Take input, exit with error if no input provided.
+	// [1] Take input, exit with error if no input provided.
 	if (argc >=2)
 	{
 		acceptInitialInput(argv[1]);
@@ -213,12 +207,11 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error - No input provided\n");
 		exit(0);
 	}
-	// [2]
-	// Check if the /proc/<<pid>> directory exists
+	// [2] Check if the /proc/<<pid>> directory exists
 	findProcDir();
 	// [3] open the pagemap and maps files in /proc/<<directory>>
    findPidFiles();
-	// [4]
+	// [4] parse the maps
    parseMaps();
    
    uint64_t totalPages = 0;
@@ -229,19 +222,17 @@ int main(int argc, char **argv)
    currentEntry = currentEntry->next;
    while (currentEntry != NULL)
    {
-   	// [5]
+   	// [5] Find start and end pages numbers
    	uint64_t startPage = findPageNo(currentEntry->addr_start);
    	uint64_t endPage = findPageNo(currentEntry->addr_end);
    	
-   	// [10]
-		// Print current entry data
+   	// [10] Print current entry data
    		printf("Segment %s\n", currentEntry->program);
    		printf("%s  ", currentEntry->protection);
    		printf("(%" PRIx64 " to %" PRIx64 ")\n", startPage, endPage);
    		printf("------------------------------\n");
    	
-   	// [6, 7]
-   	// Go through every page number in range of startPage to endPage...
+   	// [6, 7] Go through every page number in range of startPage to endPage...
    	for (uint64_t i = startPage; i <= endPage; i++)
    	{
    	   // ...find its corresponding entry in the pagemap file.
@@ -262,7 +253,7 @@ int main(int argc, char **argv)
    		}
    		
    		totalPages++;
-			// Print current Page data
+			// [10] Print current Page data
 			// Page number
 			printf("%" PRIx64 "  ", i * getpagesize());
 			// PFN
@@ -275,8 +266,7 @@ int main(int argc, char **argv)
 				printf("(offset=%" PRIx64 ")\n", component->swap_offset_if_swapped);
 			} else
 			{
-			// shift?
-				printf("(shift=?,"); // TODO find out what shift is
+				printf("(shift=%d,", component->present?12:0);
 				printf("swapped=%" PRIu64 ",", component->swapped);
 				printf("present=%" PRIu64 ",", component->present);
 				printf("pfn=%" PRIx64 ")", component->page_frame_number);
@@ -286,13 +276,13 @@ int main(int argc, char **argv)
    	currentEntry = currentEntry->next;
    }
    
-   // [11]
-   // Output totals
-   // first: total number of pages.
-   printf("------------------------");
+   // [11] Output totals first: total number of pages.
+   printf("------------------------\n");
 	printTotal(totalPages, "pages");
 	printTotal(totalPresent, "present");
 	printTotal(totalSwapped, "swapped");
 	printTotal(totalPages-totalPresent, "not present");	
-	// Free memory?
+	// Free memory
+	fclose(maps);
+	fclose(pagemap);
 }

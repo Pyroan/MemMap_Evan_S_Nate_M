@@ -22,22 +22,22 @@ THINGS THIS PROGRAM MUST DO:
       address. You must conver this into a starting and ending
       page number. (Pagesize is 4096?)
 
-✓   6. For each page number in the range you need to find the
+✓  6. For each page number in the range you need to find the
       corresponding entry in the "pagemap" file. The contents
       of the pagemap file are described in the Kernel's
       documentation file.
 
-✓   7. To do this, you will need to open the file as a random
+✓  7. To do this, you will need to open the file as a random
       access file, and seek to a location in that file that
       corresponds to the page number. Each entry in the file is
       64bit/8byte. If x is the page number, then the address in the
       disk file for that page's information is: f(x) = 8x
 
-✓   8. After locating the proper pagemap entry, you will need to read
+✓  8. After locating the proper pagemap entry, you will need to read
       the pagemap entry using the read syscall to read the 8-bytes
       into an appropriate structure.
 
-   9. After reading the pagemap entry, you will need to parse the
+✓  9. After reading the pagemap entry, you will need to parse the
       entry's bit field to determine the information stored there.
       This entry is a binary value, and you will need to split out
       the bit fields from this binary value. You can choose to do
@@ -46,12 +46,12 @@ THINGS THIS PROGRAM MUST DO:
       from the map file, and then for each segment, show each page
       and its status.
 
-   10. In the end, must show each page of memory, what its physical
+✓  10. In the end, must show each page of memory, what its physical
       page frame number is (if present), whether it is swapped or
       not, if it is swapped, what its swap address is, and whether
       the page is swapped, present, or neither.
 
-✓   11. At the end of the program, must show total number of pages,
+✓  11. At the end of the program, must show total number of pages,
       number of pages present, number pages swapped, and number
       pages not present. Use the page size to also show the total
       MB for each section.
