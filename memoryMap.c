@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdint.h>
+#include <inttypes.h>
 /*****************************************
  *         Linux Memory Page Map         *
  * Evan Schoenberger & Nathaniel Manning *
@@ -20,31 +22,47 @@ char procDir[256];
 // Files to be found in /proc/<<pid>>
 FILE *pagemap;
 FILE *maps;
-/*
+
 typedef struct components{
-	uint64 page_frame_number[55];
-	uint64 swap_type_if_swapped[5];
-	uint64 swap_offset_if_swapped[49];
-	uint64 pte[1];
-	uint64 page_exclusively_mapped[1];
-	uint64 zero[3];
-	uint64 file_page_or_shared_anon[1];
-	uint64 swapped[1];
-	uint64 present[1];
-}; */
+	uint64_t page_frame_number;
+	uint64_t swap_type_if_swapped;
+	uint64_t swap_offset_if_swapped;
+	uint64_t pte;
+	uint64_t page_exclusively_mapped;
+	uint64_t zero;
+	uint64_t file_page_or_shared_anon;
+	uint64_t swapped;
+	uint64_t present;
+} components_t;
 
 typedef struct map_entry {
-long addr_start;
-long addr_end;
+uint64_t addr_start;
+uint64_t addr_end;
 char *protection;
-long offset;
+uint64_t offset;
 char *stuff;
-long inode;
+uint64_t inode;
 char *program;
 struct map_entry *next;
 } map_entry_t;
 
 map_entry_t *head;
+
+void parsePageMap(uint64_t data)
+{
+	components_t *components = malloc(sizeof(components_t));
+	
+	components->page_frame_number = data & 0x007fffffffffffff;
+	components->present = data >> 63;
+	components->swapped =  data >> 62;
+	components->swap_type_if_swapped = data & 0x00000000000001f;
+	components->swap_offset_if_swapped = data & 0x007fffffffffffe0;
+	printf("page number: %" PRIx64 "\n", components->page_frame_number);
+	printf("swapped:  %" PRIx64 "\n", components->swapped);
+	printf("present: %" PRIx64 "\n", components->present);
+	printf("swap type: %" PRIx64 "\n", components->swap_type_if_swapped);
+	printf("swap offset: %" PRIx64 "\n", components->swap_offset_if_swapped);
+}
 /*
  * [4] tokenizes the map, 
  */
@@ -98,7 +116,7 @@ void parseMaps()
  * [5] Converts an address to its corresponding
  * page number.
  */
-long findPageNo(long addr) 
+uint64_t findPageNo(uint64_t addr) 
 {
 	int pageSize = getpagesize();
 	return addr/pageSize;
@@ -206,7 +224,9 @@ int main(int argc, char **argv)
    		lseek64(fd,i*8,SEEK_SET);
    		uint64_t data;
    		read(fd, &data, 8);
+   		parsePageMap(data);
    	}
    	currentEntry = currentEntry->next;
    }   
+   
 }
