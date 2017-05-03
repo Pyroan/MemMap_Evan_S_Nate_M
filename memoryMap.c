@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 			// Page number
 			printf("%" PRIx64 "  ", i * getpagesize());
 			// PFN
-			printf("(%" PRIx64 "):  ", component->page_frame_number);
+			printf("(%" PRIx64 "):  ", data);
 			// ram or swap
 			printf("[%s] ", component->swapped?"swap":"ram");
 			if (component->swapped)
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
 				printf("(shift=?,"); // TODO find out what shift is
 				printf("swapped=%" PRIu64 ",", component->swapped);
 				printf("present=%" PRIu64 ",", component->present);
-				printf("pfn=%" PRIx64 ")", component->page_frame_number >> 40);
+				printf("pfn=%" PRIx64 ")", component->page_frame_number);
 				printf("\n");
 			}
    	}

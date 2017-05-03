@@ -1,2 +1,2 @@
 all:
-	gcc memorymap.c -o pagemap
+	gcc memoryMap.c -o pagemap
