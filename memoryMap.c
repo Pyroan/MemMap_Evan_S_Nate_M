@@ -35,6 +35,8 @@ typedef struct components{
 	uint64_t present;
 } components_t;
 
+components_t *component;
+
 typedef struct map_entry {
 uint64_t addr_start;
 uint64_t addr_end;
@@ -48,20 +50,29 @@ struct map_entry *next;
 
 map_entry_t *head;
 
-void parsePageMap(uint64_t data)
+/*
+ * [9] 
+ */
+components_t* parsePageMap(uint64_t data)
 {
-	components_t *components = malloc(sizeof(components_t));
-	
-	components->page_frame_number = data & 0x007fffffffffffff;
-	components->present = data >> 63;
-	components->swapped =  data >> 62;
-	components->swap_type_if_swapped = data & 0x00000000000001f;
-	components->swap_offset_if_swapped = data & 0x007fffffffffffe0;
-	printf("page number: %" PRIx64 "\n", components->page_frame_number);
-	printf("swapped:  %" PRIx64 "\n", components->swapped);
-	printf("present: %" PRIx64 "\n", components->present);
-	printf("swap type: %" PRIx64 "\n", components->swap_type_if_swapped);
-	printf("swap offset: %" PRIx64 "\n", components->swap_offset_if_swapped);
+	component->page_frame_number = data & 0x007fffffffffffff; 
+	component->present = data >> 63;
+	component->swapped =  data >> 62;
+	component->swap_type_if_swapped = data & 0x00000000000001f;
+	component->swap_offset_if_swapped = data & 0x007fffffffffffe0;
+	printf("page number: %" PRIx64 "\n", component->page_frame_number);
+	if(component->swapped == 2 || component->swapped == 0)
+	{
+		printf("swapped: 1\n");
+		printf("swap type: %" PRIx64 "\n", component->swap_type_if_swapped);
+		printf("swap offset: %" PRIx64 "\n", component->swap_offset_if_swapped);
+	}
+	else
+	{
+	printf("swapped: 0\n");
+		printf("present: %" PRIx64 "\n", component->present);
+	} 
+	return component;
 }
 /*
  * [4] tokenizes the map, 
@@ -189,6 +200,7 @@ void acceptInitialInput(char *input)
 int main(int argc, char **argv)
 {
 	head = malloc(sizeof(map_entry_t));
+	component = malloc(sizeof(components_t));
 	// [1]
 	// Take input, exit with error if no input provided.
 	if (argc >=2)
