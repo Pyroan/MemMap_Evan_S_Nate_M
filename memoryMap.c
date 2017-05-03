@@ -253,11 +253,17 @@ int main(int argc, char **argv)
    		uint64_t data;
    		read(fd, &data, 8);
    		
-   		// TODO uncomment this
-//   		components_t dataComponents = parsePageMap(data);
-			// TODO add logic for finding present and swapped
+   		parsePageMap(data);
+   		if(component->swapped)
+   		{
+   			totalSwapped++;
+   		}
+   		if(component->present)
+   		{
+   			
+   		}
    		
-   		totalPages+= endPage-startPage;
+   		totalPages++;
    	}
    	currentEntry = currentEntry->next;
    }
