@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdint.h>
 #include <inttypes.h>
 /*****************************************
  *         Linux Memory Page Map         *
@@ -21,32 +22,59 @@ char procDir[256];
 // Files to be found in /proc/<<pid>>
 FILE *pagemap;
 FILE *maps;
-/*
+
 typedef struct components{
-	uint64 page_frame_number[55];
-	uint64 swap_type_if_swapped[5];
-	uint64 swap_offset_if_swapped[49];
-	uint64 pte[1];
-	uint64 page_exclusively_mapped[1];
-	uint64 zero[3];
-	uint64 file_page_or_shared_anon[1];
-	uint64 swapped[1];
-	uint64 present[1];
-}; */
+	uint64_t page_frame_number;
+	uint64_t swap_type_if_swapped;
+	uint64_t swap_offset_if_swapped;
+	uint64_t pte;
+	uint64_t page_exclusively_mapped;
+	uint64_t zero;
+	uint64_t file_page_or_shared_anon;
+	uint64_t swapped;
+	uint64_t present;
+} components_t;
+
+components_t *component;
 
 // Data if map entry
 typedef struct map_entry {
-long addr_start; // Address of the beginning
-long addr_end; // Address of the end
-char *protection; // Protection settings
-long offset; // Offset length
-char *stuff; // We really don't know.
-long inode; // Inode
-char *program; // Location of program
-struct map_entry *next; // Reference to next map_entry in Linked Lst
+uint64_t addr_start;
+uint64_t addr_end;
+char *protection;
+uint64_t offset;
+char *stuff;
+uint64_t inode;
+char *program;
+struct map_entry *next;
 } map_entry_t;
 
 map_entry_t *head;
+
+/*
+ * [9] 
+ */
+components_t* parsePageMap(uint64_t data)
+{
+	component->page_frame_number = data & 0x007fffffffffffff; 
+	component->present = data >> 63;
+	component->swapped =  data >> 62;
+	component->swap_type_if_swapped = data & 0x00000000000001f;
+	component->swap_offset_if_swapped = data & 0x007fffffffffffe0;
+	printf("page number: %" PRIx64 "\n", component->page_frame_number);
+	if(component->swapped == 2 || component->swapped == 0)
+	{
+		printf("swapped: 1\n");
+		printf("swap type: %" PRIx64 "\n", component->swap_type_if_swapped);
+		printf("swap offset: %" PRIx64 "\n", component->swap_offset_if_swapped);
+	}
+	else
+	{
+	printf("swapped: 0\n");
+		printf("present: %" PRIx64 "\n", component->present);
+	} 
+	return component;
+}
 /*
  * [4] tokenizes the map, 
  */
@@ -111,7 +139,7 @@ void printTotal(uint64_t total, char *name)
  * [5] Converts an address to its corresponding
  * page number.
  */
-long findPageNo(long addr) 
+uint64_t findPageNo(uint64_t addr) 
 {
 	int pageSize = getpagesize();
 	return addr/pageSize;
@@ -185,6 +213,7 @@ void acceptInitialInput(char *input)
 int main(int argc, char **argv)
 {
 	head = malloc(sizeof(map_entry_t));
+	component = malloc(sizeof(components_t));
 	// [1]
 	// Take input, exit with error if no input provided.
 	if (argc >=2)
