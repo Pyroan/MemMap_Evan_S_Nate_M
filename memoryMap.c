@@ -59,17 +59,9 @@ components_t* parsePageMap(uint64_t data)
 	component->page_frame_number = data & 0x007fffffffffffff; 
 	component->present = data >> 63;
 	component->swapped =  (data >> 62)%2;
-	printf("shift guy: %" PRIx64 "\n", data >> 62);
 	component->swap_type_if_swapped = data & 0x00000000000001f;
 	component->swap_offset_if_swapped = data & 0x007fffffffffffe0;
-	printf("page number: %" PRIx64 "\n", component->page_frame_number);
-	printf("swapped: %" PRIx64 "\n", component->swapped);
-	printf("present: %" PRIx64 "\n", component->present);
-	if(component->swapped)
-	{
-		printf("swap type: %" PRIx64 "\n", component->swap_type_if_swapped);
-		printf("swap offset: %" PRIx64 "\n", component->swap_offset_if_swapped);
-	}
+
 }
 /*
  * [4] tokenizes the map, 
@@ -234,11 +226,20 @@ int main(int argc, char **argv)
    uint64_t totalSwapped = 0;
    // For each entry we found in maps:
    map_entry_t *currentEntry = head;
+   currentEntry = currentEntry->next;
    while (currentEntry != NULL)
    {
    	// [5]
    	uint64_t startPage = findPageNo(currentEntry->addr_start);
    	uint64_t endPage = findPageNo(currentEntry->addr_end);
+   	
+   	// [10]
+		// Print current entry data
+   		printf("Segment %s\n", currentEntry->program);
+   		printf("%s  ", currentEntry->protection);
+   		printf("(%" PRIx64 " to %" PRIx64 ")\n", startPage, endPage);
+   		printf("------------------------------\n");
+   	
    	// [6, 7]
    	// Go through every page number in range of startPage to endPage...
    	for (uint64_t i = startPage; i <= endPage; i++)
@@ -248,29 +249,47 @@ int main(int argc, char **argv)
    		lseek64(fd,i*8,SEEK_SET);
    		uint64_t data;
    		read(fd, &data, 8);
-   		
+   		// Parse Page data, store in component
    		parsePageMap(data);
+   		// Increment totals accordingly
    		if(component->swapped)
    		{
    			totalSwapped++;
    		}
    		if(component->present)
    		{
-   			
+   			totalPresent++;
    		}
    		
    		totalPages++;
+			// Print current Page data
+			// Page number
+			printf("%" PRIx64 "  ", i * getpagesize());
+			// PFN
+			printf("(%" PRIx64 "):  ", component->page_frame_number);
+			// ram or swap
+			printf("[%s] ", component->swapped?"swap":"ram");
+			if (component->swapped)
+			{
+				printf("(type=%" PRIx64 ",", component->swap_type_if_swapped);
+				printf("(offset=%" PRIx64 ")\n", component->swap_offset_if_swapped);
+			} else
+			{
+			// shift?
+				printf("(shift=?,"); // TODO find out what shift is
+				printf("swapped=%" PRIu64 ",", component->swapped);
+				printf("present=%" PRIu64 ",", component->present);
+				printf("pfn=%" PRIx64 ")", component->page_frame_number >> 40);
+				printf("\n");
+			}
    	}
    	currentEntry = currentEntry->next;
    }
    
-   // [10]
-   // Output each page of memory, it's PFN, whether it's swapped,
-   // its swap address, and whether the page is swapped, present, or neither.
-   
    // [11]
    // Output totals
    // first: total number of pages.
+   printf("------------------------");
 	printTotal(totalPages, "pages");
 	printTotal(totalPresent, "present");
 	printTotal(totalSwapped, "swapped");
