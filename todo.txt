@@ -51,7 +51,7 @@ THINGS THIS PROGRAM MUST DO:
       not, if it is swapped, what its swap address is, and whether
       the page is swapped, present, or neither.
 
-   11. At the end of the program, must show total number of pages,
+✓   11. At the end of the program, must show total number of pages,
       number of pages present, number pages swapped, and number
       pages not present. Use the page size to also show the total
       MB for each section.

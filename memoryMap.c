@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <inttypes.h>
 /*****************************************
  *         Linux Memory Page Map         *
  * Evan Schoenberger & Nathaniel Manning *
@@ -95,6 +96,17 @@ void parseMaps()
 }
 
 /**
+ * [11] Shows total number of pages, number pages present, swapped, and
+ * not present. Also print total MB for each section
+ */
+void printTotal(uint64_t total, char *name)
+{
+	double memUsed = total * getpagesize();
+	memUsed /= 1000000; // convert bytes to MB
+	printf("Total %s: %" PRIu64 " (%.1lfMB)\n", name, total, memUsed);
+}
+
+/**
  * [5] Converts an address to its corresponding
  * page number.
  */
@@ -163,6 +175,7 @@ void acceptInitialInput(char *input)
 		fprintf(stderr, "Error - Invalid PID: %s\n", input);
 		exit(0);
 	}
+
 }
 
 /**
@@ -190,6 +203,9 @@ int main(int argc, char **argv)
 	// [4]
    parseMaps();
    
+   uint64_t totalPages = 0;
+   uint64_t totalPresent = 0;
+   uint64_t totalSwapped = 0;
    // For each entry we found in maps:
    map_entry_t *currentEntry = head;
    while (currentEntry != NULL)
@@ -206,7 +222,26 @@ int main(int argc, char **argv)
    		lseek64(fd,i*8,SEEK_SET);
    		uint64_t data;
    		read(fd, &data, 8);
+   		
+   		// TODO uncomment this
+//   		components_t dataComponents = parsePageMap(data);
+			// TODO add logic for finding present and swapped
+   		
+   		totalPages+= endPage-startPage;
    	}
    	currentEntry = currentEntry->next;
-   }   
+   }
+   
+   // [10]
+   // Output each page of memory, it's PFN, whether it's swapped,
+   // its swap address, and whether the page is swapped, present, or neither.
+   
+   // [11]
+   // Output totals
+   // first: total number of pages.
+	printTotal(totalPages, "pages");
+	printTotal(totalPresent, "present");
+	printTotal(totalSwapped, "swapped");
+	printTotal(totalPages-totalPresent, "not present");	
+	// Free memory?
 }
