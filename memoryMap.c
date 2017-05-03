@@ -94,6 +94,7 @@ void acceptInitialInput(char *input)
 int main(int argc, char **argv)
 {
 	// [1]
+	// Take input, exit with error if no input provided.
 	if (argc >=2)
 	{
 		acceptInitialInput(argv[1]);
@@ -104,8 +105,9 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	// [2]
+	// Check if the /proc/<<pid>> directory exists
 	findProcDir();
-	// [3]
+	// [3] open the pagemap and maps files in /proc/<<directory>>
    findPidFiles();
    
    // For each entry we found in maps:

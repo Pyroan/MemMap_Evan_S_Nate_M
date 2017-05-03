@@ -10,17 +10,17 @@ THINGS THIS PROGRAM MUST DO:
       If that subdirectory does not exist, then return an
       error message indicating the PID cannot be found.
 
-✓   3. In the /proc directory for a pid, there will be a pair
+✓  3. In the /proc directory for a pid, there will be a pair
       of files named "pagemap" and "maps". If these files
       do not exist, then report an error and exit.
 
-   4. Parse the "maps" file for further processing on each of
+✓  4. Parse the "maps" file for further processing on each of
       the entries (bleh). The "maps" file contains entries
       with a format specified in the .docx
 
-   5. For each entry in maps, there is a starting and ending
+✓  5. For each entry in maps, there is a starting and ending
       address. You must conver this into a starting and ending
-      page number.
+      page number. (Pagesize is 4096?)
 
    6. For each page number in the range you need to find the
       corresponding entry in the "pagemap" file. The contents
