@@ -1,7 +1,11 @@
+#define _LARGEFILE64_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 /*****************************************
@@ -187,16 +191,21 @@ int main(int argc, char **argv)
    parseMaps();
    
    // For each entry we found in maps:
-   map_entry_t currentEntry = head;
+   map_entry_t *currentEntry = head;
    while (currentEntry != NULL)
    {
    	// [5]
-   	long startPage = findPageNo(currentEntry->addr_start);
-   	long endPage = findPageNo(currentEntry->addr_end);
-   	// Go through every page number in range of startPage to endPage,
-   	// find its corresponding entry in the pagemap file.
-   	for (int i = startPage, i <= endPage; i++)
+   	uint64_t startPage = findPageNo(currentEntry->addr_start);
+   	uint64_t endPage = findPageNo(currentEntry->addr_end);
+   	// [6, 7]
+   	// Go through every page number in range of startPage to endPage...
+   	for (uint64_t i = startPage; i <= endPage; i++)
    	{
+   	   // ...find its corresponding entry in the pagemap file.
+   		int fd = fileno(pagemap);
+   		lseek64(fd,i*8,SEEK_SET);
+   		uint64_t data;
+   		read(fd, &data, 8);
    	}
    	currentEntry = currentEntry->next;
    }   

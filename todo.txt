@@ -22,18 +22,18 @@ THINGS THIS PROGRAM MUST DO:
       address. You must conver this into a starting and ending
       page number. (Pagesize is 4096?)
 
-   6. For each page number in the range you need to find the
+✓   6. For each page number in the range you need to find the
       corresponding entry in the "pagemap" file. The contents
       of the pagemap file are described in the Kernel's
       documentation file.
 
-   7. To do this, you will need to open the file as a random
+✓   7. To do this, you will need to open the file as a random
       access file, and seek to a location in that file that
       corresponds to the page number. Each entry in the file is
       64bit/8byte. If x is the page number, then the address in the
       disk file for that page's information is: f(x) = 8x
 
-   8. After locating the proper pagemap entry, you will need to read
+✓   8. After locating the proper pagemap entry, you will need to read
       the pagemap entry using the read syscall to read the 8-bytes
       into an appropriate structure.
 
