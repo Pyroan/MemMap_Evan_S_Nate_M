@@ -11,7 +11,7 @@
 #include <inttypes.h>
 /*****************************************
  *         Linux Memory Page Map         *
- * Evan Schoenberger & Nathaniel Manning *
+ *         Evan S. & Nathaniel M.        *
  *****************************************/
 
 // PID of process we're mapping.
